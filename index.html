@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Matemáticas · Trimestre 1</title>
+<style>
+  :root{
+    --bg: #FAF7F2;
+    --surface: #FFFFFF;
+    --ink: #202A44;
+    --ink-soft: #6b7280;
+    --line: #E4DFD3;
+    --grade-bg: #F1ECE0;
+    --empty-border: #D3CCBB;
+    --proceso: #D9A441;
+    --proceso-soft: #F3E4C2;
+    --hecho: #2F6F5E;
+    --hecho-soft: #DCEAE6;
+    --ok: #8B3A62;
+    --ok-soft: #F0DEE8;
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'Times New Roman', serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 20px 16px 48px;
+  }
+
+  header.page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .title-block h1 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 28px;
+    margin: 0 0 2px;
+    color: var(--ink);
+  }
+  .title-block p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--ink-soft);
+    letter-spacing: 0.01em;
+  }
+
+  .stats {
+    display: flex;
+    gap: 18px;
+  }
+  .stat {
+    text-align: right;
+  }
+  .stat .num {
+    font-family: var(--font-display);
+    font-size: 22px;
+    line-height: 1;
+    color: var(--ink);
+  }
+  .stat .lbl {
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+  .stat.ok .num { color: var(--ok); }
+  .stat.proceso .num { color: var(--proceso); }
+
+  .legend {
+    display: flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 14px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .legend .item { display: flex; align-items: center; gap: 6px; }
+  .swatch {
+    width: 15px; height: 15px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1.5px solid var(--empty-border);
+    font-size: 10px;
+    color: white;
+    flex: none;
+  }
+  .swatch.empty { background: var(--surface); }
+  .swatch.proceso { background: var(--proceso); border-color: var(--proceso); }
+  .swatch.hecho { background: var(--hecho); border-color: var(--hecho); }
+  .swatch.ok { background: var(--ok); border-color: var(--ok); }
+
+  .hint {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+  }
+
+  .table-scroll {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    min-width: 680px;
+  }
+
+  thead th {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--ink);
+    padding: 10px 4px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  thead th.ok-head { color: var(--ok); }
+
+  th.corner {
+    left: 0;
+    z-index: 3;
+    text-align: left;
+    padding-left: 12px;
+  }
+
+  td.row-label {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    padding: 8px 12px;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  td.row-label .code {
+    display: block;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    margin-top: 1px;
+  }
+
+  tr.grade-row td {
+    position: sticky;
+    left: 0;
+    background: var(--grade-bg);
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink);
+    padding: 8px 12px;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+
+  tbody tr:not(.grade-row):hover td.row-label {
+    background: #F6F3EC;
+  }
+
+  td.cell {
+    text-align: center;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+
+  .dot-btn {
+    width: 34px;
+    height: 34px;
+    margin: 4px auto;
+    border-radius: 7px;
+    border: 1.5px solid var(--empty-border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    touch-action: manipulation;
+    transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+    font-size: 15px;
+    color: white;
+    font-weight: 700;
+  }
+  .dot-btn:active { transform: scale(0.9); }
+
+  .dot-btn.s1 { background: var(--proceso-soft); border-color: var(--proceso); }
+  .dot-btn.s1::after {
+    content: "";
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--proceso);
+  }
+  .dot-btn.s2 { background: var(--hecho); border-color: var(--hecho); }
+  .dot-btn.s2::after { content: "✕"; color: white; font-size: 14px; }
+
+  td.ok-cell {
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    border-left: 2px solid var(--line);
+    background: #FCFAF6;
+  }
+  .ok-mark {
+    width: 34px;
+    height: 34px;
+    margin: 4px auto;
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    border: 1.5px dashed var(--empty-border);
+  }
+  .ok-mark.done {
+    background: var(--ok);
+    border: none;
+    color: white;
+  }
+
+  td.note-cell {
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    border-left: 1px solid var(--line);
+  }
+  .note-btn {
+    width: 34px;
+    height: 34px;
+    margin: 4px auto;
+    border-radius: 7px;
+    border: 1.5px solid var(--empty-border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    touch-action: manipulation;
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+  .note-btn.has-note {
+    background: var(--proceso-soft);
+    border-color: var(--proceso);
+    color: var(--ink);
+  }
+
+  .note-popover {
+    position: fixed;
+    z-index: 20;
+    width: 240px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(32,42,68,0.18);
+    padding: 10px;
+    display: none;
+  }
+  .note-popover.open { display: block; }
+  .note-popover .np-title {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  .note-popover textarea {
+    width: 100%;
+    min-height: 70px;
+    resize: vertical;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+  }
+  .note-popover textarea:focus { outline: 2px solid var(--proceso-soft); border-color: var(--proceso); }
+
+  footer.note {
+    margin-top: 14px;
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-head">
+    <div class="title-block">
+      <h1>Matemáticas · Trimestre 1</h1>
+      <p>Seguimiento por secuencia — 1.° a 6.° grado</p>
+    </div>
+    <div class="stats">
+      <div class="stat ok">
+        <div class="num" id="statOk">0/37</div>
+        <div class="lbl">cerradas</div>
+      </div>
+      <div class="stat proceso">
+        <div class="num" id="statProceso">0</div>
+        <div class="lbl">en proceso</div>
+      </div>
+      <div class="stat">
+        <div class="num" id="statPend">37</div>
+        <div class="lbl">sin iniciar</div>
+      </div>
+    </div>
+  </header>
+
+  <div class="legend">
+    <span class="item"><span class="swatch empty"></span> Sin iniciar</span>
+    <span class="item"><span class="swatch proceso"></span> En proceso</span>
+    <span class="item"><span class="swatch hecho">✕</span> Hecho</span>
+    <span class="item"><span class="swatch ok">OK</span> Paquete cerrado (automático)</span>
+  </div>
+  <p class="hint">Toca una celda para avanzar su estado. Al marcar una etapa como hecha, las anteriores de esa fila se marcan solas. La columna OK se marca sola cuando las 11 etapas están hechas. En Notas, toca el ícono para escribir — se guarda al cerrar el cuadro.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr id="headRow">
+          <th class="corner">Secuencia</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <footer class="note">Herramienta independiente — no se conecta con aihub. Los cambios se guardan solos en este dispositivo/sesión.</footer>
+
+</div>
+
+<div class="note-popover" id="notePopover">
+  <div class="np-title" id="notePopoverTitle">Nota</div>
+  <textarea id="notePopoverText" placeholder="Escribe un comentario…"></textarea>
+</div>
+
+<script>
+const STAGES = [
+  {key:'autoria', label:'Autoría'},
+  {key:'edicion', label:'Edición'},
+  {key:'ce', label:'CE'},
+  {key:'sdi', label:'SDI'},
+  {key:'for', label:'FOR'},
+  {key:'1al', label:'1aL'},
+  {key:'1ac', label:'1aC'},
+  {key:'2al', label:'2aL'},
+  {key:'2ac', label:'2aC'},
+  {key:'3al', label:'3aL'},
+  {key:'3ac', label:'3aC'},
+];
+
+const GRADES = [
+  {name:'1er grado', code:'P1', secs:[
+    {id:'Niv', label:'Nivelación', pages:10},
+    {id:'Sec1', label:'Secuencia 1', pages:12},
+    {id:'Sec2', label:'Secuencia 2', pages:8},
+    {id:'Sec3', label:'Secuencia 3', pages:8},
+    {id:'Sec4', label:'Secuencia 4', pages:10},
+    {id:'Sec5', label:'Secuencia 5', pages:12},
+  ]},
+  {name:'2do grado', code:'P2', secs:[
+    {id:'Sec1', label:'Secuencia 1', pages:12},
+    {id:'Sec2', label:'Secuencia 2', pages:10},
+    {id:'Sec3', label:'Secuencia 3', pages:12},
+    {id:'Sec4', label:'Secuencia 4', pages:8},
+    {id:'Sec5', label:'Secuencia 5', pages:12},
+    {id:'Sec6', label:'Secuencia 6', pages:6},
+  ]},
+  {name:'3er grado', code:'P3', secs:[
+    {id:'Sec1', label:'Secuencia 1', pages:10},
+    {id:'Sec2', label:'Secuencia 2', pages:10},
+    {id:'Sec3', label:'Secuencia 3', pages:12},
+    {id:'Sec4', label:'Secuencia 4', pages:12},
+    {id:'Sec5', label:'Secuencia 5', pages:10},
+    {id:'Sec6', label:'Secuencia 6', pages:8},
+  ]},
+  {name:'4to grado', code:'P4', secs:[
+    {id:'Sec1', label:'Secuencia 1', pages:12},
+    {id:'Sec2', label:'Secuencia 2', pages:8},
+    {id:'Sec3', label:'Secuencia 3', pages:8},
+    {id:'Sec4', label:'Secuencia 4', pages:8},
+    {id:'Sec5', label:'Secuencia 5', pages:6},
+    {id:'Sec6', label:'Secuencia 6', pages:12},
+    {id:'Sec7', label:'Secuencia 7', pages:8},
+  ]},
+  {name:'5to grado', code:'P5', secs:[
+    {id:'Sec1', label:'Secuencia 1', pages:12},
+    {id:'Sec2', label:'Secuencia 2', pages:12},
+    {id:'Sec3', label:'Secuencia 3', pages:8},
+    {id:'Sec4', label:'Secuencia 4', pages:8},
+    {id:'Sec5', label:'Secuencia 5', pages:12},
+    {id:'Sec6', label:'Secuencia 6', pages:12},
+  ]},
+  {name:'6to grado', code:'P6', secs:[
+    {id:'Sec1', label:'Secuencia 1', pages:12},
+    {id:'Sec2', label:'Secuencia 2', pages:8},
+    {id:'Sec3', label:'Secuencia 3', pages:10},
+    {id:'Sec4', label:'Secuencia 4', pages:8},
+    {id:'Sec5', label:'Secuencia 5', pages:12},
+    {id:'Sec6', label:'Secuencia 6', pages:14},
+  ]},
+];
+
+const STORAGE_KEY = 'mate-t1-tracker-estado';
+let state = {};
+
+function rowId(gradeCode, secId){ return gradeCode + '-' + secId; }
+
+function cellVal(rid, stageKey){
+  return (state[rid] && state[rid][stageKey]) || 0;
+}
+
+function setCellVal(rid, stageKey, val){
+  if(!state[rid]) state[rid] = {};
+  state[rid][stageKey] = val;
+  save();
+}
+
+function isRowDone(rid){
+  return STAGES.every(s => cellVal(rid, s.key) === 2);
+}
+
+function rowHasProgress(rid){
+  return STAGES.some(s => cellVal(rid, s.key) > 0);
+}
+
+function getNote(rid){
+  return (state[rid] && state[rid].note) || '';
+}
+
+function setNote(rid, text){
+  if(!state[rid]) state[rid] = {};
+  state[rid].note = text;
+  save();
+}
+
+async function save(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+  }catch(e){ console.error('No se pudo guardar', e); }
+}
+
+async function load(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, false);
+    if(res && res.value) state = JSON.parse(res.value);
+  }catch(e){ state = {}; }
+}
+
+function buildHead(){
+  const headRow = document.getElementById('headRow');
+  STAGES.forEach(s=>{
+    const th = document.createElement('th');
+    th.textContent = s.label;
+    headRow.appendChild(th);
+  });
+  const okTh = document.createElement('th');
+  okTh.textContent = 'OK';
+  okTh.className = 'ok-head';
+  headRow.appendChild(okTh);
+
+  const noteTh = document.createElement('th');
+  noteTh.textContent = 'Notas';
+  headRow.appendChild(noteTh);
+}
+
+function buildBody(){
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+  GRADES.forEach(grade=>{
+    const gradeTr = document.createElement('tr');
+    gradeTr.className = 'grade-row';
+    const gradeTd = document.createElement('td');
+    gradeTd.colSpan = STAGES.length + 3;
+    gradeTd.textContent = grade.name;
+    gradeTr.appendChild(gradeTd);
+    tbody.appendChild(gradeTr);
+
+    grade.secs.forEach(sec=>{
+      const rid = rowId(grade.code, sec.id);
+      const tr = document.createElement('tr');
+
+      const labelTd = document.createElement('td');
+      labelTd.className = 'row-label';
+      labelTd.innerHTML = sec.label + '<span class="code">' + sec.pages + ' pág · ' + rid + '</span>';
+      tr.appendChild(labelTd);
+
+      STAGES.forEach(s=>{
+        const td = document.createElement('td');
+        td.className = 'cell';
+        const btn = document.createElement('div');
+        btn.className = 'dot-btn';
+        btn.dataset.row = rid;
+        btn.dataset.stage = s.key;
+        renderBtn(btn, cellVal(rid, s.key));
+        btn.addEventListener('click', onCellClick);
+        td.appendChild(btn);
+        tr.appendChild(td);
+      });
+
+      const okTd = document.createElement('td');
+      okTd.className = 'ok-cell';
+      const okMark = document.createElement('div');
+      okMark.className = 'ok-mark';
+      okMark.id = 'ok-' + rid;
+      renderOk(okMark, rid);
+      okTd.appendChild(okMark);
+      tr.appendChild(okTd);
+
+      const noteTd = document.createElement('td');
+      noteTd.className = 'note-cell';
+      const noteBtn = document.createElement('div');
+      noteBtn.className = 'note-btn';
+      noteBtn.id = 'note-' + rid;
+      noteBtn.dataset.row = rid;
+      noteBtn.dataset.label = grade.name + ' · ' + sec.label;
+      renderNoteBtn(noteBtn, rid);
+      noteBtn.addEventListener('click', onNoteClick);
+      noteTd.appendChild(noteBtn);
+      tr.appendChild(noteTd);
+
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+function renderBtn(btn, val){
+  btn.classList.remove('s1','s2');
+  if(val === 1) btn.classList.add('s1');
+  if(val === 2) btn.classList.add('s2');
+}
+
+function renderOk(el, rid){
+  if(isRowDone(rid)){
+    el.classList.add('done');
+    el.textContent = 'OK';
+  } else {
+    el.classList.remove('done');
+    el.textContent = '';
+  }
+}
+
+function renderNoteBtn(btn, rid){
+  const has = getNote(rid).trim().length > 0;
+  btn.classList.toggle('has-note', has);
+  btn.textContent = has ? '✎' : '+';
+}
+
+let openNoteRid = null;
+
+function onNoteClick(e){
+  e.stopPropagation();
+  const btn = e.currentTarget;
+  const rid = btn.dataset.row;
+  const label = btn.dataset.label;
+  const pop = document.getElementById('notePopover');
+  const title = document.getElementById('notePopoverTitle');
+  const textarea = document.getElementById('notePopoverText');
+
+  if(openNoteRid === rid && pop.classList.contains('open')){
+    closeNotePopover();
+    return;
+  }
+
+  closeNotePopover();
+
+  title.textContent = label;
+  textarea.value = getNote(rid);
+  pop.dataset.row = rid;
+
+  const rect = btn.getBoundingClientRect();
+  const popWidth = 240;
+  let left = rect.left + rect.width/2 - popWidth/2;
+  left = Math.max(8, Math.min(left, window.innerWidth - popWidth - 8));
+  let top = rect.bottom + 6;
+  if(top + 130 > window.innerHeight) top = rect.top - 136;
+
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  pop.classList.add('open');
+  openNoteRid = rid;
+  setTimeout(()=> textarea.focus(), 0);
+}
+
+function closeNotePopover(){
+  const pop = document.getElementById('notePopover');
+  if(!pop.classList.contains('open')) return;
+  const rid = pop.dataset.row;
+  const textarea = document.getElementById('notePopoverText');
+  if(rid){
+    setNote(rid, textarea.value);
+    const btn = document.getElementById('note-' + rid);
+    if(btn) renderNoteBtn(btn, rid);
+  }
+  pop.classList.remove('open');
+  openNoteRid = null;
+}
+
+document.addEventListener('click', (e)=>{
+  const pop = document.getElementById('notePopover');
+  if(pop.classList.contains('open') && !pop.contains(e.target)){
+    closeNotePopover();
+  }
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') closeNotePopover();
+});
+
+function onCellClick(e){
+  const btn = e.currentTarget;
+  const rid = btn.dataset.row;
+  const stageKey = btn.dataset.stage;
+  const idx = STAGES.findIndex(s => s.key === stageKey);
+  const current = cellVal(rid, stageKey);
+  const next = (current + 1) % 3;
+  setCellVal(rid, stageKey, next);
+  renderBtn(btn, next);
+
+  if(next === 2){
+    for(let i = 0; i < idx; i++){
+      const pk = STAGES[i].key;
+      if(cellVal(rid, pk) < 2){
+        setCellVal(rid, pk, 2);
+        const prevBtn = document.querySelector('.dot-btn[data-row="' + rid + '"][data-stage="' + pk + '"]');
+        if(prevBtn) renderBtn(prevBtn, 2);
+      }
+    }
+  }
+
+  const okEl = document.getElementById('ok-' + rid);
+  if(okEl) renderOk(okEl, rid);
+  updateStats();
+}
+
+function updateStats(){
+  let total = 0, done = 0, proceso = 0, pend = 0;
+  GRADES.forEach(grade=>{
+    grade.secs.forEach(sec=>{
+      total++;
+      const rid = rowId(grade.code, sec.id);
+      if(isRowDone(rid)) done++;
+      else if(rowHasProgress(rid)) proceso++;
+      else pend++;
+    });
+  });
+  document.getElementById('statOk').textContent = done + '/' + total;
+  document.getElementById('statProceso').textContent = proceso;
+  document.getElementById('statPend').textContent = pend;
+}
+
+async function init(){
+  await load();
+  buildHead();
+  buildBody();
+  updateStats();
+}
+
+init();
+</script>
+</body>
+</html>
