@@ -67,6 +67,7 @@
 
   .stats {
     display: flex;
+    align-items: center;
     gap: 18px;
   }
   .stat {
@@ -311,6 +312,44 @@
   }
   .note-popover textarea:focus { outline: 2px solid var(--proceso-soft); border-color: var(--proceso); }
 
+  .sync-status {
+    margin: 4px 0 0;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .sync-status.ok { color: var(--hecho); }
+  .sync-status.busy { color: var(--proceso); }
+  .sync-status.warn { color: var(--proceso); }
+  .sync-status.error { color: #B3413E; }
+
+  .settings-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1.5px solid var(--empty-border);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .settings-actions { margin-top: 8px; text-align: right; }
+  .settings-save-btn {
+    border: none;
+    background: var(--ink);
+    color: white;
+    font-size: 12px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .np-hint {
+    margin-top: 6px;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+  }
+
   footer.note {
     margin-top: 14px;
     font-size: 11.5px;
@@ -326,8 +365,10 @@
     <div class="title-block">
       <h1>Matemáticas · Trimestre 1</h1>
       <p>Seguimiento por secuencia — 1.° a 6.° grado</p>
+      <p class="sync-status" id="syncStatus"></p>
     </div>
     <div class="stats">
+      <button class="settings-btn" id="settingsBtn" title="Conectar con GitHub">⚙️</button>
       <div class="stat ok">
         <div class="num" id="statOk">0/37</div>
         <div class="lbl">cerradas</div>
@@ -362,13 +403,22 @@
     </table>
   </div>
 
-  <footer class="note">Herramienta independiente — no se conecta con aihub. Los cambios se guardan solos en este dispositivo/sesión.</footer>
+  <footer class="note">Herramienta independiente — no se conecta con aihub. Con el token de GitHub (⚙️) el estado se sincroniza entre todos tus dispositivos; sin él, se guarda solo en este navegador.</footer>
 
 </div>
 
 <div class="note-popover" id="notePopover">
   <div class="np-title" id="notePopoverTitle">Nota</div>
   <textarea id="notePopoverText" placeholder="Escribe un comentario…"></textarea>
+</div>
+
+<div class="note-popover" id="settingsPopover">
+  <div class="np-title">Token de GitHub (fine-grained, solo este repo)</div>
+  <textarea id="settingsTokenText" placeholder="github_pat_…" style="min-height:44px; font-family:monospace; font-size:12px;"></textarea>
+  <div class="settings-actions">
+    <button class="settings-save-btn" id="settingsSaveBtn">Guardar y sincronizar</button>
+  </div>
+  <div class="np-hint">Se guarda solo en este navegador. Nunca lo compartas por chat.</div>
 </div>
 
 <script>
@@ -439,7 +489,14 @@ const GRADES = [
 ];
 
 const STORAGE_KEY = 'mate-t1-tracker-estado';
+const TOKEN_KEY = 'mate-t1-gh-token';
+const GH_OWNER = 'christianblanco-ctrl';
+const GH_REPO = 'seguimiento-matematicas-t1';
+const GH_PATH = 'estado.json';
+const GH_BRANCH = 'main';
 let state = {};
+let ghSha = null;
+let pushTimer = null;
 
 function rowId(gradeCode, secId){ return gradeCode + '-' + secId; }
 
@@ -471,10 +528,41 @@ function setNote(rid, text){
   save();
 }
 
+function getToken(){
+  try{ return localStorage.getItem(TOKEN_KEY) || ''; }catch(e){ return ''; }
+}
+function setToken(t){
+  try{ localStorage.setItem(TOKEN_KEY, t); }catch(e){}
+}
+
+function b64EncodeUnicode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+    (match, p1) => String.fromCharCode('0x' + p1)));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(atob(str).split('').map(c =>
+    '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+}
+
+function setSyncStatus(text, kind){
+  const el = document.getElementById('syncStatus');
+  if(!el) return;
+  el.textContent = text;
+  el.className = 'sync-status ' + (kind || '');
+}
+
 function save(){
   try{
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }catch(e){ console.error('No se pudo guardar', e); }
+  }catch(e){ console.error('No se pudo guardar localmente', e); }
+
+  if(!getToken()){
+    setSyncStatus('Sin token de GitHub — solo se guarda en este dispositivo', 'warn');
+    return;
+  }
+  setSyncStatus('Guardando…', 'busy');
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(pushToGitHub, 700);
 }
 
 function load(){
@@ -482,6 +570,90 @@ function load(){
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw) state = JSON.parse(raw);
   }catch(e){ state = {}; }
+}
+
+async function ghFetchFile(){
+  const token = getToken();
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}?ref=${GH_BRANCH}`,
+    {
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    }
+  );
+  if(res.status === 404){ ghSha = null; return null; }
+  if(!res.ok) throw new Error('GitHub GET ' + res.status);
+  const data = await res.json();
+  ghSha = data.sha;
+  return JSON.parse(b64DecodeUnicode(data.content));
+}
+
+async function ghPutFile(newState, retry){
+  const token = getToken();
+  const body = {
+    message: 'Actualiza estado del tablero',
+    content: b64EncodeUnicode(JSON.stringify(newState)),
+    branch: GH_BRANCH
+  };
+  if(ghSha) body.sha = ghSha;
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }
+  );
+  if(res.status === 409 && !retry){
+    // sha changed elsewhere — refetch and retry once
+    await ghFetchFile();
+    return ghPutFile(newState, true);
+  }
+  if(!res.ok){
+    const errText = await res.text().catch(()=> '');
+    throw new Error('GitHub PUT ' + res.status + ' ' + errText);
+  }
+  const data = await res.json();
+  ghSha = data.content.sha;
+}
+
+async function pushToGitHub(){
+  try{
+    await ghPutFile(state);
+    setSyncStatus('Guardado en GitHub ✓', 'ok');
+  }catch(e){
+    console.error(e);
+    setSyncStatus('Error al guardar en GitHub — revisa el token', 'error');
+  }
+}
+
+async function pullFromGitHub(silent){
+  if(!getToken()){
+    if(!silent) setSyncStatus('Sin token de GitHub — solo se guarda en este dispositivo', 'warn');
+    return;
+  }
+  if(!silent) setSyncStatus('Cargando desde GitHub…', 'busy');
+  try{
+    const remote = await ghFetchFile();
+    if(remote){
+      state = remote;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+    setSyncStatus('Guardado en GitHub ✓', 'ok');
+    buildBody();
+    updateStats();
+  }catch(e){
+    console.error(e);
+    setSyncStatus('No se pudo conectar con GitHub', 'error');
+  }
 }
 
 function buildHead(){
@@ -638,10 +810,49 @@ document.addEventListener('click', (e)=>{
   if(pop.classList.contains('open') && !pop.contains(e.target)){
     closeNotePopover();
   }
+  const spop = document.getElementById('settingsPopover');
+  if(spop.classList.contains('open') && !spop.contains(e.target) && e.target.id !== 'settingsBtn'){
+    spop.classList.remove('open');
+  }
 });
 document.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape') closeNotePopover();
+  if(e.key === 'Escape'){
+    closeNotePopover();
+    document.getElementById('settingsPopover').classList.remove('open');
+  }
 });
+
+function initSettingsPopover(){
+  const btn = document.getElementById('settingsBtn');
+  const pop = document.getElementById('settingsPopover');
+  const textarea = document.getElementById('settingsTokenText');
+  const saveBtn = document.getElementById('settingsSaveBtn');
+
+  btn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    if(pop.classList.contains('open')){
+      pop.classList.remove('open');
+      return;
+    }
+    textarea.value = getToken();
+    const rect = btn.getBoundingClientRect();
+    let left = rect.right - 240;
+    left = Math.max(8, Math.min(left, window.innerWidth - 248));
+    pop.style.left = left + 'px';
+    pop.style.top = (rect.bottom + 6) + 'px';
+    pop.classList.add('open');
+    setTimeout(()=> textarea.focus(), 0);
+  });
+
+  saveBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    setToken(textarea.value.trim());
+    pop.classList.remove('open');
+    pullFromGitHub();
+  });
+
+  pop.addEventListener('click', (e)=> e.stopPropagation());
+}
 
 function onCellClick(e){
   const btn = e.currentTarget;
@@ -686,10 +897,17 @@ function updateStats(){
 }
 
 async function init(){
-  await load();
+  load();
   buildHead();
   buildBody();
   updateStats();
+  initSettingsPopover();
+  if(getToken()){
+    setSyncStatus('Cargando desde GitHub…', 'busy');
+    pullFromGitHub(true);
+  } else {
+    setSyncStatus('Sin token de GitHub — toca ⚙️ para sincronizar entre dispositivos', 'warn');
+  }
 }
 
 init();
