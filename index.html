@@ -646,13 +646,17 @@ async function pullFromGitHub(silent){
     if(remote){
       state = remote;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      setSyncStatus('Guardado en GitHub ✓', 'ok');
+    } else {
+      // no existe estado.json todavía en el repo: lo creamos con lo que haya localmente
+      await ghPutFile(state);
+      setSyncStatus('Guardado en GitHub ✓', 'ok');
     }
-    setSyncStatus('Guardado en GitHub ✓', 'ok');
     buildBody();
     updateStats();
   }catch(e){
     console.error(e);
-    setSyncStatus('No se pudo conectar con GitHub', 'error');
+    setSyncStatus('No se pudo conectar con GitHub — revisa el token', 'error');
   }
 }
 
