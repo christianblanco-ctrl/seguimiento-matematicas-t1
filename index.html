@@ -334,6 +334,23 @@
     align-items: center;
     justify-content: center;
   }
+  .save-btn {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1.5px solid var(--empty-border);
+    background: var(--surface);
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .save-btn.dirty {
+    background: var(--proceso-soft);
+    border-color: var(--proceso);
+    color: var(--ink);
+  }
   .settings-actions { margin-top: 8px; text-align: right; }
   .settings-save-btn {
     border: none;
@@ -368,6 +385,7 @@
       <p class="sync-status" id="syncStatus"></p>
     </div>
     <div class="stats">
+      <button class="save-btn" id="saveBtn">💾 Guardado</button>
       <button class="settings-btn" id="settingsBtn" title="Conectar con GitHub">⚙️</button>
       <div class="stat ok">
         <div class="num" id="statOk">0/37</div>
@@ -390,7 +408,7 @@
     <span class="item"><span class="swatch hecho">✕</span> Hecho</span>
     <span class="item"><span class="swatch ok">OK</span> Paquete cerrado (automático)</span>
   </div>
-  <p class="hint">Toca una celda para avanzar su estado. Al marcar una etapa como hecha, las anteriores de esa fila se marcan solas. La columna OK se marca sola cuando las 11 etapas están hechas. En Notas, toca el ícono para escribir — se guarda al cerrar el cuadro.</p>
+  <p class="hint">Toca una celda para avanzar su estado. Al marcar una etapa como hecha, las anteriores de esa fila se marcan solas. La columna OK se marca sola cuando las 11 etapas están hechas. En Notas, toca el ícono para escribir. Los cambios se guardan al instante en este dispositivo; toca 💾 Guardar cambios cuando quieras subirlos a GitHub.</p>
 
   <div class="table-scroll">
     <table>
@@ -403,7 +421,7 @@
     </table>
   </div>
 
-  <footer class="note">Herramienta independiente — no se conecta con aihub. Con el token de GitHub (⚙️) el estado se sincroniza entre todos tus dispositivos; sin él, se guarda solo en este navegador.</footer>
+  <footer class="note">Herramienta independiente — no se conecta con aihub. Con el token de GitHub (⚙️) y el botón 💾 Guardar cambios, el estado se sincroniza entre todos tus dispositivos; sin token, se guarda solo en este navegador.</footer>
 
 </div>
 
@@ -496,7 +514,9 @@ const GH_PATH = 'estado.json';
 const GH_BRANCH = 'main';
 let state = {};
 let ghSha = null;
-let pushTimer = null;
+let pushInFlight = false;
+let pushDirty = false;
+let hasUnsavedChanges = false;
 
 function rowId(gradeCode, secId){ return gradeCode + '-' + secId; }
 
@@ -556,13 +576,47 @@ function save(){
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }catch(e){ console.error('No se pudo guardar localmente', e); }
 
+  hasUnsavedChanges = true;
+  updateSaveButton();
+}
+
+function updateSaveButton(){
+  const btn = document.getElementById('saveBtn');
+  if(!btn) return;
+  if(hasUnsavedChanges){
+    btn.classList.add('dirty');
+    btn.textContent = '💾 Guardar cambios';
+  } else {
+    btn.classList.remove('dirty');
+    btn.textContent = '💾 Guardado';
+  }
+}
+
+function onSaveClick(){
   if(!getToken()){
-    setSyncStatus('Sin token de GitHub — solo se guarda en este dispositivo', 'warn');
+    setSyncStatus('Sin token de GitHub — toca ⚙️ para sincronizar', 'warn');
+    document.getElementById('settingsBtn').click();
+    return;
+  }
+  schedulePush();
+}
+
+function schedulePush(){
+  if(pushInFlight){
+    // ya hay un guardado en curso: marca que hace falta otro justo después
+    pushDirty = true;
     return;
   }
   setSyncStatus('Guardando…', 'busy');
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushToGitHub, 700);
+  pushInFlight = true;
+  pushDirty = false;
+  pushToGitHub().finally(()=>{
+    pushInFlight = false;
+    if(pushDirty){
+      pushDirty = false;
+      schedulePush();
+    }
+  });
 }
 
 function load(){
@@ -591,7 +645,8 @@ async function ghFetchFile(){
   return JSON.parse(b64DecodeUnicode(data.content));
 }
 
-async function ghPutFile(newState, retry){
+async function ghPutFile(newState, attempt){
+  attempt = attempt || 0;
   const token = getToken();
   const body = {
     message: 'Actualiza estado del tablero',
@@ -612,10 +667,11 @@ async function ghPutFile(newState, retry){
       body: JSON.stringify(body)
     }
   );
-  if(res.status === 409 && !retry){
-    // sha changed elsewhere — refetch and retry once
+  if(res.status === 409 && attempt < 4){
+    // otro guardado (este u otro dispositivo) cambió el archivo primero:
+    // relee la versión más reciente y reintenta con el estado actual
     await ghFetchFile();
-    return ghPutFile(newState, true);
+    return ghPutFile(state, attempt + 1);
   }
   if(!res.ok){
     const errText = await res.text().catch(()=> '');
@@ -628,6 +684,8 @@ async function ghPutFile(newState, retry){
 async function pushToGitHub(){
   try{
     await ghPutFile(state);
+    hasUnsavedChanges = false;
+    updateSaveButton();
     setSyncStatus('Guardado en GitHub ✓', 'ok');
   }catch(e){
     console.error(e);
@@ -652,6 +710,8 @@ async function pullFromGitHub(silent){
       await ghPutFile(state);
       setSyncStatus('Guardado en GitHub ✓', 'ok');
     }
+    hasUnsavedChanges = false;
+    updateSaveButton();
     buildBody();
     updateStats();
   }catch(e){
@@ -906,6 +966,8 @@ async function init(){
   buildBody();
   updateStats();
   initSettingsPopover();
+  document.getElementById('saveBtn').addEventListener('click', onSaveClick);
+  updateSaveButton();
   if(getToken()){
     setSyncStatus('Cargando desde GitHub…', 'busy');
     pullFromGitHub(true);
