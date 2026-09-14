@@ -374,57 +374,14 @@
     text-align: center;
   }
 
-  .deadlines {
-    margin-top: 22px;
-    padding: 16px 18px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    background: var(--surface);
-  }
-  .deadlines h2 {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-weight: 400;
-    font-size: 17px;
-    margin: 0 0 4px;
-    color: var(--ink);
-  }
-  .deadlines-sub {
-    margin: 0 0 14px;
-    font-size: 12px;
-    color: var(--ink-soft);
-  }
-  .deadlines-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px 16px;
-  }
-  .dl-item {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    padding: 8px 10px;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    background: var(--bg);
-  }
-  .dl-label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--ink);
-  }
-  .dl-label small {
+  .cell-date {
     display: block;
-    font-size: 10px;
-    font-weight: 400;
+    font-size: 9.5px;
     color: var(--ink-soft);
-    margin-top: 1px;
-  }
-  .dl-date {
-    font-family: var(--font-display);
-    font-style: italic;
-    font-size: 15px;
-    color: var(--ok);
+    text-align: center;
+    margin-top: -2px;
+    padding-bottom: 3px;
+    white-space: nowrap;
   }
 </style>
 </head>
@@ -473,24 +430,6 @@
       <tbody id="tbody"></tbody>
     </table>
   </div>
-
-  <section class="deadlines">
-    <h2>Fechas límite por proceso</h2>
-    <p class="deadlines-sub">Fecha tope en la que cada proceso debería estar terminado en todas las secuencias, según el cronograma maestro.</p>
-    <div class="deadlines-grid">
-      <div class="dl-item"><span class="dl-label">Autoría</span><span class="dl-date">7-oct-2026</span></div>
-      <div class="dl-item"><span class="dl-label">Edición</span><span class="dl-date">20-oct-2026</span></div>
-      <div class="dl-item"><span class="dl-label">CE <small>(envío a corrección de estilo)</small></span><span class="dl-date">28-oct-2026</span></div>
-      <div class="dl-item"><span class="dl-label">SDI <small>(validación de iconografía)</small></span><span class="dl-date">2-nov-2026</span></div>
-      <div class="dl-item"><span class="dl-label">FOR <small>(1 día antes de maquetación)</small></span><span class="dl-date">2-nov-2026</span></div>
-      <div class="dl-item"><span class="dl-label">1aL</span><span class="dl-date">10-nov-2026</span></div>
-      <div class="dl-item"><span class="dl-label">1aC</span><span class="dl-date">12-nov-2026</span></div>
-      <div class="dl-item"><span class="dl-label">2aL</span><span class="dl-date">18-nov-2026</span></div>
-      <div class="dl-item"><span class="dl-label">2aC</span><span class="dl-date">24-nov-2026</span></div>
-      <div class="dl-item"><span class="dl-label">3aL</span><span class="dl-date">26-nov-2026</span></div>
-      <div class="dl-item"><span class="dl-label">3aC</span><span class="dl-date">27-nov-2026</span></div>
-    </div>
-  </section>
 
   <footer class="note">Herramienta independiente — no se conecta con aihub. Con el token de GitHub (⚙️) y el botón 💾 Guardar cambios, el estado se sincroniza entre todos tus dispositivos; sin token, se guarda solo en este navegador.</footer>
 
@@ -575,6 +514,17 @@ const GRADES = [
     {id:'Sec6', label:'Secuencia 6', pages:14},
   ]},
 ];
+
+// Fechas de referencia por secuencia y proceso, tomadas del cronograma maestro
+// (fecha de término planeada de cada etapa). Es informativo — no se edita aquí.
+const DEADLINES = {"P1-Niv":{"1ac":"2026-10-08","1al":"2026-10-06","2ac":"2026-10-19","2al":"2026-10-13","3ac":"2026-10-22","3al":"2026-10-21","autoria":"2026-08-25","ce":"2026-09-23","edicion":"2026-09-14","for":"2026-09-28","sdi":"2026-09-28"},"P1-Sec1":{"1ac":"2026-10-14","1al":"2026-10-12","2ac":"2026-10-23","2al":"2026-10-19","3ac":"2026-10-28","3al":"2026-10-27","autoria":"2026-09-02","ce":"2026-09-29","edicion":"2026-09-21","for":"2026-10-02","sdi":"2026-10-02"},"P1-Sec2":{"1ac":"2026-10-20","1al":"2026-10-16","2ac":"2026-10-29","2al":"2026-10-23","3ac":"2026-11-03","3al":"2026-11-02","autoria":"2026-09-08","ce":"2026-10-05","edicion":"2026-09-25","for":"2026-10-08","sdi":"2026-10-08"},"P1-Sec3":{"1ac":"2026-10-26","1al":"2026-10-22","2ac":"2026-11-04","2al":"2026-10-29","3ac":"2026-11-09","3al":"2026-11-06","autoria":"2026-09-14","ce":"2026-10-09","edicion":"2026-10-01","for":"2026-10-14","sdi":"2026-10-14"},"P1-Sec4":{"1ac":"2026-10-30","1al":"2026-10-28","2ac":"2026-11-10","2al":"2026-11-04","3ac":"2026-11-13","3al":"2026-11-12","autoria":"2026-09-22","ce":"2026-10-15","edicion":"2026-10-07","for":"2026-10-20","sdi":"2026-10-20"},"P1-Sec5":{"1ac":"2026-11-05","1al":"2026-11-03","2ac":"2026-11-17","2al":"2026-11-10","3ac":"2026-11-20","3al":"2026-11-19","autoria":"2026-09-30","ce":"2026-10-21","edicion":"2026-10-13","for":"2026-10-26","sdi":"2026-10-26"},"P2-Sec1":{"1ac":"2026-10-09","1al":"2026-10-07","2ac":"2026-10-20","2al":"2026-10-14","3ac":"2026-10-23","3al":"2026-10-22","autoria":"2026-08-31","ce":"2026-09-24","edicion":"2026-09-15","for":"2026-09-29","sdi":"2026-09-29"},"P2-Sec2":{"1ac":"2026-10-15","1al":"2026-10-13","2ac":"2026-10-26","2al":"2026-10-20","3ac":"2026-10-29","3al":"2026-10-28","autoria":"2026-09-07","ce":"2026-09-30","edicion":"2026-09-22","for":"2026-10-05","sdi":"2026-10-05"},"P2-Sec3":{"1ac":"2026-10-22","1al":"2026-10-20","2ac":"2026-11-02","2al":"2026-10-27","3ac":"2026-11-05","3al":"2026-11-04","autoria":"2026-09-15","ce":"2026-10-07","edicion":"2026-09-29","for":"2026-10-12","sdi":"2026-10-12"},"P2-Sec4":{"1ac":"2026-10-28","1al":"2026-10-26","2ac":"2026-11-06","2al":"2026-11-02","3ac":"2026-11-11","3al":"2026-11-10","autoria":"2026-09-22","ce":"2026-10-13","edicion":"2026-10-05","for":"2026-10-16","sdi":"2026-10-16"},"P2-Sec5":{"1ac":"2026-11-05","1al":"2026-11-03","2ac":"2026-11-17","2al":"2026-11-10","3ac":"2026-11-20","3al":"2026-11-19","autoria":"2026-09-30","ce":"2026-10-21","edicion":"2026-10-13","for":"2026-10-26","sdi":"2026-10-26"},"P2-Sec6":{"1ac":"2026-11-11","1al":"2026-11-09","2ac":"2026-11-23","2al":"2026-11-17","3ac":"2026-11-26","3al":"2026-11-25","autoria":"2026-10-05","ce":"2026-10-27","edicion":"2026-10-19","for":"2026-10-30","sdi":"2026-10-30"},"P3-Sec1":{"1ac":"2026-10-08","1al":"2026-10-06","2ac":"2026-10-19","2al":"2026-10-13","3ac":"2026-10-22","3al":"2026-10-21","autoria":"2026-08-25","ce":"2026-09-23","edicion":"2026-09-14","for":"2026-09-28","sdi":"2026-09-28"},"P3-Sec2":{"1ac":"2026-10-14","1al":"2026-10-12","2ac":"2026-10-23","2al":"2026-10-19","3ac":"2026-10-28","3al":"2026-10-27","autoria":"2026-09-01","ce":"2026-09-29","edicion":"2026-09-21","for":"2026-10-02","sdi":"2026-10-02"},"P3-Sec3":{"1ac":"2026-10-20","1al":"2026-10-16","2ac":"2026-10-29","2al":"2026-10-23","3ac":"2026-11-03","3al":"2026-11-02","autoria":"2026-09-09","ce":"2026-10-05","edicion":"2026-09-25","for":"2026-10-08","sdi":"2026-10-08"},"P3-Sec4":{"1ac":"2026-10-26","1al":"2026-10-22","2ac":"2026-11-04","2al":"2026-10-29","3ac":"2026-11-09","3al":"2026-11-06","autoria":"2026-09-18","ce":"2026-10-09","edicion":"2026-10-01","for":"2026-10-14","sdi":"2026-10-14"},"P3-Sec5":{"1ac":"2026-11-02","1al":"2026-10-29","2ac":"2026-11-11","2al":"2026-11-05","3ac":"2026-11-17","3al":"2026-11-13","autoria":"2026-09-25","ce":"2026-10-16","edicion":"2026-10-08","for":"2026-10-21","sdi":"2026-10-21"},"P3-Sec6":{"1ac":"2026-11-06","1al":"2026-11-04","2ac":"2026-11-18","2al":"2026-11-11","3ac":"2026-11-23","3al":"2026-11-20","autoria":"2026-10-01","ce":"2026-10-22","edicion":"2026-10-14","for":"2026-10-27","sdi":"2026-10-27"},"P4-Sec1":{"1ac":"2026-10-08","1al":"2026-10-06","2ac":"2026-10-19","2al":"2026-10-13","3ac":"2026-10-22","3al":"2026-10-21","autoria":"2026-08-31","ce":"2026-09-23","edicion":"2026-09-14","for":"2026-09-28","sdi":"2026-09-28"},"P4-Sec2":{"1ac":"2026-10-14","1al":"2026-10-12","2ac":"2026-10-23","2al":"2026-10-19","3ac":"2026-10-28","3al":"2026-10-27","autoria":"2026-09-04","ce":"2026-09-29","edicion":"2026-09-21","for":"2026-10-02","sdi":"2026-10-02"},"P4-Sec3":{"1ac":"2026-10-20","1al":"2026-10-16","2ac":"2026-10-29","2al":"2026-10-23","3ac":"2026-11-03","3al":"2026-11-02","autoria":"2026-09-10","ce":"2026-10-05","edicion":"2026-09-25","for":"2026-10-08","sdi":"2026-10-08"},"P4-Sec4":{"1ac":"2026-10-28","1al":"2026-10-26","2ac":"2026-11-06","2al":"2026-11-02","3ac":"2026-11-11","3al":"2026-11-10","autoria":"2026-09-22","ce":"2026-10-13","edicion":"2026-10-05","for":"2026-10-16","sdi":"2026-10-16"},"P4-Sec5":{"1ac":"2026-11-05","1al":"2026-11-03","2ac":"2026-11-17","2al":"2026-11-10","3ac":"2026-11-20","3al":"2026-11-19","autoria":"2026-09-30","ce":"2026-10-21","edicion":"2026-10-13","for":"2026-10-26","sdi":"2026-10-26"},"P4-Sec6":{"1ac":"2026-11-11","1al":"2026-11-09","2ac":"2026-11-23","2al":"2026-11-17","3ac":"2026-11-26","3al":"2026-11-25","autoria":"2026-10-06","ce":"2026-10-27","edicion":"2026-10-19","for":"2026-10-30","sdi":"2026-10-30"},"P5-Sec1":{"1ac":"2026-10-08","1al":"2026-10-06","2ac":"2026-10-19","2al":"2026-10-13","3ac":"2026-10-22","3al":"2026-10-21","autoria":"2026-08-26","ce":"2026-09-23","edicion":"2026-09-14","for":"2026-09-28","sdi":"2026-09-28"},"P5-Sec2":{"1ac":"2026-10-14","1al":"2026-10-12","2ac":"2026-10-23","2al":"2026-10-19","3ac":"2026-10-28","3al":"2026-10-27","autoria":"2026-09-03","ce":"2026-09-29","edicion":"2026-09-21","for":"2026-10-02","sdi":"2026-10-02"},"P5-Sec3":{"1ac":"2026-10-20","1al":"2026-10-16","2ac":"2026-10-29","2al":"2026-10-23","3ac":"2026-11-03","3al":"2026-11-02","autoria":"2026-09-09","ce":"2026-10-05","edicion":"2026-09-25","for":"2026-10-08","sdi":"2026-10-08"},"P5-Sec4":{"1ac":"2026-10-26","1al":"2026-10-22","2ac":"2026-11-04","2al":"2026-10-29","3ac":"2026-11-09","3al":"2026-11-06","autoria":"2026-09-15","ce":"2026-10-09","edicion":"2026-10-01","for":"2026-10-14","sdi":"2026-10-14"},"P5-Sec5":{"1ac":"2026-10-30","1al":"2026-10-28","2ac":"2026-11-10","2al":"2026-11-04","3ac":"2026-11-13","3al":"2026-11-12","autoria":"2026-09-24","ce":"2026-10-15","edicion":"2026-10-07","for":"2026-10-20","sdi":"2026-10-20"},"P5-Sec6":{"1ac":"2026-11-09","1al":"2026-11-05","2ac":"2026-11-19","2al":"2026-11-12","3ac":"2026-11-24","3al":"2026-11-23","autoria":"2026-10-02","ce":"2026-10-23","edicion":"2026-10-15","for":"2026-10-28","sdi":"2026-10-28"},"P6-Sec1":{"1ac":"2026-10-08","1al":"2026-10-06","2ac":"2026-10-19","2al":"2026-10-13","3ac":"2026-10-22","3al":"2026-10-21","autoria":"2026-08-31","ce":"2026-09-23","edicion":"2026-09-14","for":"2026-09-28","sdi":"2026-09-28"},"P6-Sec2":{"1ac":"2026-10-14","1al":"2026-10-12","2ac":"2026-10-23","2al":"2026-10-19","3ac":"2026-10-28","3al":"2026-10-27","autoria":"2026-09-04","ce":"2026-09-29","edicion":"2026-09-21","for":"2026-10-02","sdi":"2026-10-02"},"P6-Sec3":{"1ac":"2026-10-20","1al":"2026-10-16","2ac":"2026-10-29","2al":"2026-10-23","3ac":"2026-11-03","3al":"2026-11-02","autoria":"2026-09-11","ce":"2026-10-05","edicion":"2026-09-25","for":"2026-10-08","sdi":"2026-10-08"},"P6-Sec4":{"1ac":"2026-10-26","1al":"2026-10-22","2ac":"2026-11-04","2al":"2026-10-29","3ac":"2026-11-09","3al":"2026-11-06","autoria":"2026-09-18","ce":"2026-10-09","edicion":"2026-10-01","for":"2026-10-14","sdi":"2026-10-14"},"P6-Sec5":{"1ac":"2026-11-03","1al":"2026-10-30","2ac":"2026-11-12","2al":"2026-11-06","3ac":"2026-11-18","3al":"2026-11-17","autoria":"2026-09-28","ce":"2026-10-19","edicion":"2026-10-09","for":"2026-10-22","sdi":"2026-10-22"},"P6-Sec6":{"1ac":"2026-11-12","1al":"2026-11-10","2ac":"2026-11-24","2al":"2026-11-18","3ac":"2026-11-27","3al":"2026-11-26","autoria":"2026-10-07","ce":"2026-10-28","edicion":"2026-10-20","for":"2026-11-02","sdi":"2026-11-02"}};
+
+function fmtDeadline(iso){
+  if(!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return d.getDate() + ' ' + meses[d.getMonth()];
+}
 
 const STORAGE_KEY = 'mate-t1-tracker-estado';
 const TOKEN_KEY = 'mate-t1-gh-token';
@@ -838,6 +788,13 @@ function buildBody(){
         renderBtn(btn, cellVal(rid, s.key));
         btn.addEventListener('click', onCellClick);
         td.appendChild(btn);
+        const dl = (DEADLINES[rid] || {})[s.key];
+        if(dl){
+          const dateEl = document.createElement('span');
+          dateEl.className = 'cell-date';
+          dateEl.textContent = fmtDeadline(dl);
+          td.appendChild(dateEl);
+        }
         tr.appendChild(td);
       });
 
