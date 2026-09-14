@@ -382,7 +382,12 @@
     margin-top: -2px;
     padding-bottom: 3px;
     white-space: nowrap;
+    font-weight: 600;
   }
+  .cell-date.cd-ontime { color: var(--hecho); font-weight: 400; }
+  .cell-date.cd-today { color: var(--proceso); }
+  .cell-date.cd-late-done { color: var(--ink-soft); font-weight: 400; }
+  .cell-date.cd-late-pending { color: #B3413E; }
 </style>
 </head>
 <body>
@@ -524,6 +529,34 @@ function fmtDeadline(iso){
   const d = new Date(iso + 'T00:00:00');
   const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
   return d.getDate() + ' ' + meses[d.getMonth()];
+}
+
+function todayMidnight(){
+  const t = new Date();
+  t.setHours(0,0,0,0);
+  return t;
+}
+
+// Clasifica la fecha de una celda según hoy y si esa etapa ya está marcada como hecha (val===2):
+//  - cd-ontime: la fecha todavía no llega (a tiempo)
+//  - cd-today: la fecha es justo hoy
+//  - cd-late-done: la fecha ya pasó, pero la etapa está hecha
+//  - cd-late-pending: la fecha ya pasó y la etapa NO está hecha (atrasado)
+function deadlineStatusClass(iso, val){
+  if(!iso) return '';
+  const d = new Date(iso + 'T00:00:00');
+  const today = todayMidnight();
+  if(d.getTime() === today.getTime()) return 'cd-today';
+  if(d.getTime() < today.getTime()) return val === 2 ? 'cd-late-done' : 'cd-late-pending';
+  return 'cd-ontime';
+}
+
+function updateCellDate(rid, stageKey){
+  const dateEl = document.querySelector('.cell-date[data-row="' + rid + '"][data-stage="' + stageKey + '"]');
+  if(!dateEl) return;
+  const dl = (DEADLINES[rid] || {})[stageKey];
+  if(!dl) return;
+  dateEl.className = 'cell-date ' + deadlineStatusClass(dl, cellVal(rid, stageKey));
 }
 
 const STORAGE_KEY = 'mate-t1-tracker-estado';
@@ -791,7 +824,9 @@ function buildBody(){
         const dl = (DEADLINES[rid] || {})[s.key];
         if(dl){
           const dateEl = document.createElement('span');
-          dateEl.className = 'cell-date';
+          dateEl.className = 'cell-date ' + deadlineStatusClass(dl, cellVal(rid, s.key));
+          dateEl.dataset.row = rid;
+          dateEl.dataset.stage = s.key;
           dateEl.textContent = fmtDeadline(dl);
           td.appendChild(dateEl);
         }
@@ -954,6 +989,7 @@ function onCellClick(e){
   const next = (current + 1) % 3;
   setCellVal(rid, stageKey, next);
   renderBtn(btn, next);
+  updateCellDate(rid, stageKey);
 
   if(next === 2){
     for(let i = 0; i < idx; i++){
@@ -962,6 +998,7 @@ function onCellClick(e){
         setCellVal(rid, pk, 2);
         const prevBtn = document.querySelector('.dot-btn[data-row="' + rid + '"][data-stage="' + pk + '"]');
         if(prevBtn) renderBtn(prevBtn, 2);
+        updateCellDate(rid, pk);
       }
     }
   }
