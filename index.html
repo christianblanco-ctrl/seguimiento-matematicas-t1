@@ -373,6 +373,59 @@
     color: var(--ink-soft);
     text-align: center;
   }
+
+  .deadlines {
+    margin-top: 22px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+  .deadlines h2 {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 17px;
+    margin: 0 0 4px;
+    color: var(--ink);
+  }
+  .deadlines-sub {
+    margin: 0 0 14px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .deadlines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px 16px;
+  }
+  .dl-item {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg);
+  }
+  .dl-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .dl-label small {
+    display: block;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--ink-soft);
+    margin-top: 1px;
+  }
+  .dl-date {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ok);
+  }
 </style>
 </head>
 <body>
@@ -420,6 +473,24 @@
       <tbody id="tbody"></tbody>
     </table>
   </div>
+
+  <section class="deadlines">
+    <h2>Fechas límite por proceso</h2>
+    <p class="deadlines-sub">Fecha tope en la que cada proceso debería estar terminado en todas las secuencias, según el cronograma maestro.</p>
+    <div class="deadlines-grid">
+      <div class="dl-item"><span class="dl-label">Autoría</span><span class="dl-date">7-oct-2026</span></div>
+      <div class="dl-item"><span class="dl-label">Edición</span><span class="dl-date">20-oct-2026</span></div>
+      <div class="dl-item"><span class="dl-label">CE <small>(envío a corrección de estilo)</small></span><span class="dl-date">28-oct-2026</span></div>
+      <div class="dl-item"><span class="dl-label">SDI <small>(validación de iconografía)</small></span><span class="dl-date">2-nov-2026</span></div>
+      <div class="dl-item"><span class="dl-label">FOR <small>(1 día antes de maquetación)</small></span><span class="dl-date">2-nov-2026</span></div>
+      <div class="dl-item"><span class="dl-label">1aL</span><span class="dl-date">10-nov-2026</span></div>
+      <div class="dl-item"><span class="dl-label">1aC</span><span class="dl-date">12-nov-2026</span></div>
+      <div class="dl-item"><span class="dl-label">2aL</span><span class="dl-date">18-nov-2026</span></div>
+      <div class="dl-item"><span class="dl-label">2aC</span><span class="dl-date">24-nov-2026</span></div>
+      <div class="dl-item"><span class="dl-label">3aL</span><span class="dl-date">26-nov-2026</span></div>
+      <div class="dl-item"><span class="dl-label">3aC</span><span class="dl-date">27-nov-2026</span></div>
+    </div>
+  </section>
 
   <footer class="note">Herramienta independiente — no se conecta con aihub. Con el token de GitHub (⚙️) y el botón 💾 Guardar cambios, el estado se sincroniza entre todos tus dispositivos; sin token, se guarda solo en este navegador.</footer>
 
